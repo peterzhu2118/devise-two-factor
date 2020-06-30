@@ -78,7 +78,7 @@ module Devise
                                     :otp_secret_encryption_key)
 
         def generate_otp_secret(otp_secret_length = self.otp_secret_length)
-          ROTP::Base32.random_base32(otp_secret_length)
+          ROTP::Base32.random(otp_secret_length)
         end
       end
     end

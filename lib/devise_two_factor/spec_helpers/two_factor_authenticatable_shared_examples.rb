@@ -12,7 +12,7 @@ RSpec.shared_examples 'two_factor_authenticatable' do
 
   describe '#otp_secret' do
     it 'should be of the configured length' do
-      expect(subject.otp_secret.length).to eq(subject.class.otp_secret_length)
+      expect(subject.otp_secret.length).to eq(subject.class.otp_secret_length * 8 / 5)
     end
 
     it 'stores the encrypted otp_secret' do
@@ -93,7 +93,7 @@ RSpec.shared_examples 'two_factor_authenticatable' do
   end
 
   describe '#otp_provisioning_uri' do
-    let(:otp_secret_length) { subject.class.otp_secret_length }
+    let(:otp_secret_length) { subject.class.otp_secret_length * 8 / 5 }
     let(:account)           { Faker::Internet.email }
     let(:issuer)            { "Tinfoil" }
 
@@ -102,7 +102,7 @@ RSpec.shared_examples 'two_factor_authenticatable' do
     end
 
     it 'should return uri with issuer option' do
-      expect(subject.otp_provisioning_uri(account, issuer: issuer)).to match(%r{otpauth://totp/#{issuer}:#{account}\?.*secret=\w{#{otp_secret_length}}(&|$)})
+      expect(subject.otp_provisioning_uri(account, issuer: issuer)).to match(%r{otpauth://totp/#{issuer}:#{account}\?.*secret=[A-Z0-9]{#{otp_secret_length}}&.*$})
       expect(subject.otp_provisioning_uri(account, issuer: issuer)).to match(%r{otpauth://totp/#{issuer}:#{account}\?.*issuer=#{issuer}(&|$)})
     end
   end
