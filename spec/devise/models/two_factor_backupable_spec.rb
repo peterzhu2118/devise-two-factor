@@ -18,6 +18,7 @@ describe ::Devise::Models::TwoFactorBackupable do
   context 'When included in a class' do
     subject { TwoFactorBackupableDouble.new }
 
-    it_behaves_like 'two_factor_backupable'
+    it_behaves_like 'two_factor_backupable', true
+    it_behaves_like 'two_factor_backupable', false
   end
 end

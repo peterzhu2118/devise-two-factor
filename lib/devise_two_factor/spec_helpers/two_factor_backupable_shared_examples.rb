@@ -1,4 +1,8 @@
-RSpec.shared_examples 'two_factor_backupable' do
+RSpec.shared_examples 'two_factor_backupable' do |hash_backup_codes|
+  before do
+    Devise.otp_hash_backup_codes = hash_backup_codes
+  end
+
   describe 'required_fields' do
     it 'has the attr_encrypted fields for otp_backup_codes' do
       expect(Devise::Models::TwoFactorBackupable.required_fields(subject.class)).to contain_exactly(:otp_backup_codes)
@@ -25,10 +29,18 @@ RSpec.shared_examples 'two_factor_backupable' do
         expect(@plaintext_codes.uniq).to contain_exactly(*@plaintext_codes)
       end
 
-      it 'stores the codes as BCrypt hashes' do
-        subject.otp_backup_codes.each do |code|
-          # $algorithm$cost$(22 character salt + 31 character hash)
-          expect(code).to match(/\A\$[0-9a-z]{2}\$[0-9]{2}\$[A-Za-z0-9\.\/]{53}\z/)
+      if hash_backup_codes
+        it 'stores the codes as BCrypt hashes' do
+          subject.otp_backup_codes.each do |code|
+            # $algorithm$cost$(22 character salt + 31 character hash)
+            expect(code).to match(/\A\$[0-9a-z]{2}\$[0-9]{2}\$[A-Za-z0-9\.\/]{53}\z/)
+          end
+        end
+      else
+        it 'stores the codes as plain text' do
+          @plaintext_codes = subject.generate_otp_backup_codes!
+
+          expect(subject.otp_backup_codes).to match_array(@plaintext_codes)
         end
       end
     end

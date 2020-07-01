@@ -24,6 +24,10 @@ module Devise
   # generate_otp_backup_codes!
   mattr_accessor :otp_number_of_backup_codes
   @@otp_number_of_backup_codes = 5
+
+  # Whether to hash backup codes or store them as plain text
+  mattr_accessor :otp_hash_backup_codes
+  @@otp_hash_backup_codes = true
 end
 
 Devise.add_module(:two_factor_authenticatable, :route => :session, :strategy => true,

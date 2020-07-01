@@ -23,7 +23,7 @@ module Devise
           codes << SecureRandom.hex(code_length / 2) # Hexstring has length 2*n
         end
 
-        hashed_codes = codes.map { |code| Devise::Encryptor.digest(self.class, code) }
+        hashed_codes = codes.map { |code| prepare_code(code) }
         self.otp_backup_codes = hashed_codes
 
         codes
@@ -35,7 +35,7 @@ module Devise
         codes = self.otp_backup_codes || []
 
         codes.each do |backup_code|
-          next unless Devise::Encryptor.compare(self.class, backup_code, code)
+          next unless compare_codes(backup_code, code)
 
           codes.delete(backup_code)
           self.otp_backup_codes = codes
@@ -50,7 +50,26 @@ module Devise
       module ClassMethods
         Devise::Models.config(self, :otp_backup_code_length,
                                     :otp_number_of_backup_codes,
-                                    :pepper)
+                                    :pepper,
+                                    :otp_hash_backup_codes)
+      end
+
+    private
+
+      def prepare_code(code)
+        if self.class.otp_hash_backup_codes
+          Devise::Encryptor.digest(self.class, code)
+        else
+          code
+        end
+      end
+
+      def compare_codes(backup_code, code)
+        if self.class.otp_hash_backup_codes
+          Devise::Encryptor.compare(self.class, backup_code, code)
+        else
+          ActiveSupport::SecurityUtils.secure_compare(backup_code, code)
+        end
       end
     end
   end
